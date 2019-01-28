@@ -12,8 +12,8 @@ namespace Parser
     class Program
     {
         private static Regex mainRegex = new Regex(@"(?<=(<.*?>))(\w|\d|\n|[().,\-:;@#$%^*\[\]+–/\/®°⁰!?|`~]| )+?(?=(</.*?>))");
-        private static Regex placeholderRegex = new Regex(@"placeholder=""([A-Za-z0-9a-zżźćńółęąśŻŹĆĄŚĘŁÓŃ?!.\- ]+)""");
-        private static Regex valueRegex = new Regex(@"value=""([A-Za-z0-9a-zżźćńółęąśŻŹĆĄŚĘŁÓŃ?!.\- ]+)""");
+        private static Regex placeholderRegex = new Regex(@"placeholder=""([A-Za-z0-9a-zżźćńółęąśŻŹĆĄŚĘŁÓŃ?!.\-, ]+)""");
+        private static Regex valueRegex = new Regex(@"value=""([A-Za-z0-9a-zżźćńółęąśŻŹĆĄŚĘŁÓŃ?!.\-, ]+)""");
         private static List<string> specialWords = new List<string>() {"&nbsp","&rsaquo;","&#10003;"};
 
         static void Main(string[] args)
