@@ -5,12 +5,15 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
+//TO DO create object to store indexDictionary and readText name it ParserWorker or something like that.
+
 namespace Parser
 {
     class Program
     {
-        private static Regex regex = new Regex(@"(?<=(<.*?>))(\w|\d|\n|[().,\-:;@#$%^&*\[\]+–/\/®°⁰!?|`~]| )+?(?=(</.*?>))");
-        private static Regex placeHolderRegex = new Regex(@"(placeholder="".*?"")");
+        private static Regex mainRegex = new Regex(@"(?<=(<.*?>))(\w|\d|\n|[().,\-:;@#$%^&*\[\]+–/\/®°⁰!?|`~]| )+?(?=(</.*?>))");
+        private static Regex placeholderRegex = new Regex(@"placeholder=""([A-Za-z0-9a-zżźćńółęąśŻŹĆĄŚĘŁÓŃ?!. ]+)""");
+        private static Regex valueRegex = new Regex(@"value=""([A-Za-z0-9a-zżźćńółęąśŻŹĆĄŚĘŁÓŃ?!. ]+)""");
 
         static void Main(string[] args)
         {
@@ -30,40 +33,63 @@ namespace Parser
              }
              
 
-            var matchesLength = GetMatchesCount(readText);
+            var matchesLength = GetMatchesCount(readText,mainRegex);
 
             for(var i = 0 ; i < matchesLength; i++) {
                 Match match = GetMatch(readText);
                 var index = match.Index;
                 var matchedString = match.Value;
                 Console.WriteLine("Matched string: '{0}'", matchedString);
-                var isInDictionary = indexDictionary.ContainsKey(matchedString);
-
-                var indexFromDictionary = 0;
-
-                if(isInDictionary) {
-                    indexFromDictionary = indexDictionary.GetValueOrDefault(matchedString);
-                }else {
-                    if(indexDictionary.Values.Count > 0)
-                    {
-                        var lastIndexFromDictionary = indexDictionary.Values.Last();
-                        indexFromDictionary = ++lastIndexFromDictionary;
-                    }else {
-                        indexFromDictionary = 1;
-                    }
-
-                    indexDictionary.Add(matchedString,indexFromDictionary);
-                }
-
+                var indexFromDictionary = GetIndexInIndexDictionaryIfItExists(ref indexDictionary,matchedString);
                 var replaceString = GetReplaceString(matchedString,indexFromDictionary);
                 readText = ReplaceMyStringAndRemoveOldOne(readText,matchedString,replaceString,index);
             }
+
+            ParseTextForRegexArgument(ref readText,ref indexDictionary,placeholderRegex);
+            ParseTextForRegexArgument(ref readText,ref indexDictionary,valueRegex);
 
             SaveIndexDictionaryToCsv(indexDictionary,"kody.csv");
             string fileResultPath = path;
 
             Encoding utf8WithoutBom = new UTF8Encoding(false);
             File.WriteAllText(fileResultPath, readText, utf8WithoutBom);
+        }
+
+        static void ParseTextForRegexArgument(ref string readText,ref Dictionary<string,int> indexDictionary, Regex regex) {
+            var matchesCount = GetMatchesCount(readText,regex);
+
+            for(var i =0; i < matchesCount; i++) {
+                Match match = regex.Match(readText);
+                var correctMatchGroup = match.Groups.Last();
+                string matchedString = correctMatchGroup.Value;
+                int positionIndexInText = correctMatchGroup.Index;
+                Console.WriteLine("Matched string: '{0}'", matchedString);
+                var indexFromDictionary = GetIndexInIndexDictionaryIfItExists(ref indexDictionary,matchedString);
+                var replaceString = GetReplaceString(matchedString,indexFromDictionary);
+                readText = ReplaceMyStringAndRemoveOldOne(readText,matchedString,replaceString,positionIndexInText);
+            }
+        }
+    
+        static int GetIndexInIndexDictionaryIfItExists(ref Dictionary<string,int> indexDictionary,string matchedString) {
+             var isInDictionary = indexDictionary.ContainsKey(matchedString);
+
+            var indexFromDictionary = 0;
+
+            if(isInDictionary) {
+                indexFromDictionary = indexDictionary.GetValueOrDefault(matchedString);
+            }else {
+                if(indexDictionary.Values.Count > 0)
+                {
+                    var lastIndexFromDictionary = indexDictionary.Values.Last();
+                    indexFromDictionary = ++lastIndexFromDictionary;
+                }else {
+                    indexFromDictionary = 1;
+                }
+
+                indexDictionary.Add(matchedString,indexFromDictionary);
+            }
+
+            return indexFromDictionary;
         }
 
         static void SaveIndexDictionaryToCsv(Dictionary<string,int> indexDictionary,string path) {
@@ -109,15 +135,13 @@ namespace Parser
         }
 
         static Match GetMatch(string text) {
-            return regex.Match(text);
+            return mainRegex.Match(text);
         }
 
-        static int GetMatchesCount(string text) {
-            
+        static int GetMatchesCount(string text, Regex regex) {
             MatchCollection matches = regex.Matches(text);
-            
-            Console.WriteLine("{0} matches found", matches.Count); 
 
+            Console.WriteLine("{0} matches found", matches.Count); 
             return matches.Count;
         }
 
