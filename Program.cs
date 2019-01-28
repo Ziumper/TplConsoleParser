@@ -6,7 +6,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 //TO DO create object to store indexDictionary and readText name it ParserWorker or something like that.
-//TO DO add ingore cases like &nbsp; and &rsquo;
 
 namespace Parser
 {
