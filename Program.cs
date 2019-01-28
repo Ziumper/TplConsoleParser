@@ -11,10 +11,10 @@ namespace Parser
 {
     class Program
     {
-        private static Regex mainRegex = new Regex(@"(?<=(<.*?>))(\w|\d|\n|[().,\-:;@#$%^&*\[\]+–/\/®°⁰!?|`~]| )+?(?=(</.*?>))");
+        private static Regex mainRegex = new Regex(@"(?<=(<.*?>))(\w|\d|\n|[().,\-:;@#$%^*\[\]+–/\/®°⁰!?|`~]| )+?(?=(</.*?>))");
         private static Regex placeholderRegex = new Regex(@"placeholder=""([A-Za-z0-9a-zżźćńółęąśŻŹĆĄŚĘŁÓŃ?!.\- ]+)""");
         private static Regex valueRegex = new Regex(@"value=""([A-Za-z0-9a-zżźćńółęąśŻŹĆĄŚĘŁÓŃ?!.\- ]+)""");
-        private static List<string> specialWords = new List<string>() {"&nbsp","&rsaquo;"};
+        private static List<string> specialWords = new List<string>() {"&nbsp","&rsaquo;","&#10003;"};
 
         static void Main(string[] args)
         {
@@ -37,18 +37,13 @@ namespace Parser
             var matchesLength = GetMatchesCount(readText,mainRegex);
 
             for(var i = 0 ; i < matchesLength; i++) {
-                Match match = GetMatch(readText);
+                Match match = mainRegex.Match(readText);
                 var index = match.Index;
                 var matchedString = match.Value;
-               
-                if(!IsSpecial(matchedString)) {
-                    Console.WriteLine("Matched string: '{0}'", matchedString);
-                    var indexFromDictionary = GetIndexInIndexDictionaryIfItExists(ref indexDictionary,matchedString);
-                    var replaceString = GetReplaceString(matchedString,indexFromDictionary);
-                    readText = ReplaceMyStringAndRemoveOldOne(readText,matchedString,replaceString,index);
-                }else {
-                    Console.WriteLine("Matched special string: '{0}",matchedString);
-                }
+                Console.WriteLine("Matched string: '{0}'", matchedString);
+                var indexFromDictionary = GetIndexInIndexDictionaryIfItExists(ref indexDictionary,matchedString);
+                var replaceString = GetReplaceString(matchedString,indexFromDictionary);
+                readText = ReplaceMyStringAndRemoveOldOne(readText,matchedString,replaceString,index);
             }
 
             ParseTextForRegexArgument(ref readText,ref indexDictionary,placeholderRegex);
@@ -69,20 +64,13 @@ namespace Parser
                 var correctMatchGroup = match.Groups.Last();
                 string matchedString = correctMatchGroup.Value;
                 int positionIndexInText = correctMatchGroup.Index;
-                if(!IsSpecial(matchedString)) {
-                    Console.WriteLine("Matched string: '{0}'", matchedString);
-                    var indexFromDictionary = GetIndexInIndexDictionaryIfItExists(ref indexDictionary,matchedString);
-                    var replaceString = GetReplaceString(matchedString,indexFromDictionary);
-                    readText = ReplaceMyStringAndRemoveOldOne(readText,matchedString,replaceString,positionIndexInText);
-                }else {
-                    Console.WriteLine("Matched special string: '{0}",matchedString);
-                }
+                Console.WriteLine("Matched string: '{0}'", matchedString);
+                var indexFromDictionary = GetIndexInIndexDictionaryIfItExists(ref indexDictionary,matchedString);
+                var replaceString = GetReplaceString(matchedString,indexFromDictionary);
+                readText = ReplaceMyStringAndRemoveOldOne(readText,matchedString,replaceString,positionIndexInText);
             }
         }
 
-        static bool IsSpecial(string matchedString) {
-            return specialWords.Contains(matchedString);
-        }
     
         static int GetIndexInIndexDictionaryIfItExists(ref Dictionary<string,int> indexDictionary,string matchedString) {
              var isInDictionary = indexDictionary.ContainsKey(matchedString);
@@ -146,10 +134,6 @@ namespace Parser
 
         static string GetReplaceString(string matchedText,int indexFromDictionary) {
             return "{'" + matchedText + "'|lng:"+ indexFromDictionary + "}"; 
-        }
-
-        static Match GetMatch(string text) {
-            return mainRegex.Match(text);
         }
 
         static int GetMatchesCount(string text, Regex regex) {
