@@ -21,7 +21,14 @@ namespace Parser
 
         static void Parse(string path){
              Dictionary<string,int> indexDictionary = GetIndexDictionary("kody.csv");
-             string readText = File.ReadAllText(path);
+             string readText = "";
+             try{
+                readText = File.ReadAllText(path);
+             }catch (FileNotFoundException exception) {
+                Console.WriteLine("File with path: {0} \n Exception: {1}",path,exception.Message);
+                return;
+             }
+             
 
             var matchesLength = GetMatchesCount(readText);
 
@@ -51,7 +58,6 @@ namespace Parser
                 var replaceString = GetReplaceString(matchedString,indexFromDictionary);
                 readText = ReplaceMyStringAndRemoveOldOne(readText,matchedString,replaceString,index);
             }
-
 
             SaveIndexDictionaryToCsv(indexDictionary,"kody.csv");
             string fileResultPath = path;
@@ -88,7 +94,7 @@ namespace Parser
                      index = Convert.ToInt32(values[1]);
                     }
                     catch(Exception ex) {
-                        Console.WriteLine("Key: {0} , Index: {1}, exception: {3}",values[0],index,ex.Message);
+                        Console.WriteLine("Key: "+ values[0] + "\n Exception:"+ ex.Message);
                     }
                     
                     dictionary.Add(values[0],index);
