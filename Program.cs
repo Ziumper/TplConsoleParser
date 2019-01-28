@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 //TO DO create object to store indexDictionary and readText name it ParserWorker or something like that.
+//TO DO add ingore cases like &nbsp; and &rsquo;
 
 namespace Parser
 {
@@ -14,6 +15,7 @@ namespace Parser
         private static Regex mainRegex = new Regex(@"(?<=(<.*?>))(\w|\d|\n|[().,\-:;@#$%^&*\[\]+–/\/®°⁰!?|`~]| )+?(?=(</.*?>))");
         private static Regex placeholderRegex = new Regex(@"placeholder=""([A-Za-z0-9a-zżźćńółęąśŻŹĆĄŚĘŁÓŃ?!. ]+)""");
         private static Regex valueRegex = new Regex(@"value=""([A-Za-z0-9a-zżźćńółęąśŻŹĆĄŚĘŁÓŃ?!. ]+)""");
+        private static List<string> specialWords = new List<string>() {"&nbsp","&rsaquo;"};
 
         static void Main(string[] args)
         {
@@ -39,10 +41,15 @@ namespace Parser
                 Match match = GetMatch(readText);
                 var index = match.Index;
                 var matchedString = match.Value;
-                Console.WriteLine("Matched string: '{0}'", matchedString);
-                var indexFromDictionary = GetIndexInIndexDictionaryIfItExists(ref indexDictionary,matchedString);
-                var replaceString = GetReplaceString(matchedString,indexFromDictionary);
-                readText = ReplaceMyStringAndRemoveOldOne(readText,matchedString,replaceString,index);
+               
+                if(!IsSpecial(matchedString)) {
+                    Console.WriteLine("Matched string: '{0}'", matchedString);
+                    var indexFromDictionary = GetIndexInIndexDictionaryIfItExists(ref indexDictionary,matchedString);
+                    var replaceString = GetReplaceString(matchedString,indexFromDictionary);
+                    readText = ReplaceMyStringAndRemoveOldOne(readText,matchedString,replaceString,index);
+                }else {
+                    Console.WriteLine("Matched special string: '{0}",matchedString);
+                }
             }
 
             ParseTextForRegexArgument(ref readText,ref indexDictionary,placeholderRegex);
@@ -63,11 +70,19 @@ namespace Parser
                 var correctMatchGroup = match.Groups.Last();
                 string matchedString = correctMatchGroup.Value;
                 int positionIndexInText = correctMatchGroup.Index;
-                Console.WriteLine("Matched string: '{0}'", matchedString);
-                var indexFromDictionary = GetIndexInIndexDictionaryIfItExists(ref indexDictionary,matchedString);
-                var replaceString = GetReplaceString(matchedString,indexFromDictionary);
-                readText = ReplaceMyStringAndRemoveOldOne(readText,matchedString,replaceString,positionIndexInText);
+                if(!IsSpecial(matchedString)) {
+                    Console.WriteLine("Matched string: '{0}'", matchedString);
+                    var indexFromDictionary = GetIndexInIndexDictionaryIfItExists(ref indexDictionary,matchedString);
+                    var replaceString = GetReplaceString(matchedString,indexFromDictionary);
+                    readText = ReplaceMyStringAndRemoveOldOne(readText,matchedString,replaceString,positionIndexInText);
+                }else {
+                    Console.WriteLine("Matched special string: '{0}",matchedString);
+                }
             }
+        }
+
+        static bool IsSpecial(string matchedString) {
+            return specialWords.Contains(matchedString);
         }
     
         static int GetIndexInIndexDictionaryIfItExists(ref Dictionary<string,int> indexDictionary,string matchedString) {
