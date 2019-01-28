@@ -29,7 +29,7 @@ namespace Parser
              try{
                 readText = File.ReadAllText(path);
              }catch (FileNotFoundException exception) {
-                Console.WriteLine("File with path: {0} \n Exception: {1}",path,exception.Message);
+                Console.WriteLine(exception.Message);
                 return;
              }
              
